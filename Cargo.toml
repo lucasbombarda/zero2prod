@@ -1,7 +1,15 @@
 [package]
 name = "zero2prod"
 version = "0.1.0"
+authors = ["Lucas Bombarda <lucas@devdock.com.br>"]
 edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "zero2prod"
+path = "src/main.rs"
 
 [dependencies]
 actix-web = "4"
