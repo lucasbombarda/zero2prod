@@ -6,3 +6,4 @@ database:
   username: "app"
   password: "password"
   database_name: "newsletter"
+  require_ssl: false
