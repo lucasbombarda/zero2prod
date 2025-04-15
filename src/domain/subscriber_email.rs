@@ -1,6 +1,6 @@
 use validator::ValidateEmail;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SubscriberEmail(String);
 
 impl SubscriberEmail {
@@ -51,7 +51,7 @@ mod tests {
     }
 
     #[test]
-    fn email_misisng_at_symbol_is_rejected() {
+    fn email_missing_at_symbol_is_rejected() {
         let email = "test.com".to_string();
         assert_err!(SubscriberEmail::parse(email));
     }
