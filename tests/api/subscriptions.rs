@@ -116,3 +116,18 @@ async fn subscribe_sends_a_confimation_email_with_a_link() {
 
     assert_eq!(confirmation_links.html, confirmation_links.plain_text)
 }
+
+#[tokio::test]
+async fn subscribe_fails_if_there_is_a_fatal_database_error() {
+    let app = spawn_app().await;
+    let body = "name=lucas&email=lucas%40devdock.com.br";
+
+    sqlx::query!("ALTER TABLE subscription_tokens DROP COLUMN subscription_token")
+        .execute(&app.db_pool)
+        .await
+        .expect("Failed to drop column");
+
+    let response = app.post_subscriptions(body.into()).await;
+
+    assert_eq!(response.status().as_u16(), 500);
+}
