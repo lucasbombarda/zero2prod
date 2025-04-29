@@ -54,6 +54,7 @@ default-features = false
 features = [
     "json",
     "rustls-tls",
+    "cookies",
 ]
 
 [dependencies.sqlx]
