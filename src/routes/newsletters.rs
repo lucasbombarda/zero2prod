@@ -79,7 +79,7 @@ pub async fn publish_newsletter(
     let subscribers = get_confirmed_subscribers(&pool).await?;
     let credentials = basic_authentication(request.headers()).map_err(PublishError::AuthError)?;
 
-    tracing::Span::current().record("username", &tracing::field::display(&credentials.username));
+    tracing::Span::current().record("username", tracing::field::display(&credentials.username));
 
     let user_id = validate_credentials(credentials, &pool)
         .await
@@ -88,7 +88,7 @@ pub async fn publish_newsletter(
             AuthError::UnexpectedError(_) => PublishError::UnexpectedError(e.into()),
         })?;
 
-    tracing::Span::current().record("user_id", &tracing::field::display(&user_id));
+    tracing::Span::current().record("user_id", tracing::field::display(&user_id));
 
     for subscriber in subscribers {
         match subscriber {
