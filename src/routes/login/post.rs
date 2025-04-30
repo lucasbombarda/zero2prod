@@ -2,7 +2,7 @@ use crate::{
     authentication::{AuthError, Credentials, validate_credentials},
     routes::error_chain_fmt,
 };
-use actix_web::{HttpResponse, cookie::Cookie, error::InternalError, http::header::LOCATION, web};
+use actix_web::{HttpResponse, error::InternalError, http::header::LOCATION, web};
 use actix_web_flash_messages::FlashMessage;
 use secrecy::Secret;
 use sqlx::PgPool;

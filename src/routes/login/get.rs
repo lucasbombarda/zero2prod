@@ -1,34 +1,8 @@
-use actix_web::{
-    HttpRequest, HttpResponse,
-    cookie::{Cookie, time::Duration},
-    http::header::ContentType,
-};
+use actix_web::{HttpResponse, http::header::ContentType};
 use actix_web_flash_messages::{IncomingFlashMessages, Level};
-use hmac::{Hmac, Mac};
-use secrecy::ExposeSecret;
 
-use crate::startup::HmacSecret;
 use std::fmt::Write;
 
-#[derive(serde::Deserialize)]
-pub struct QueryParams {
-    error: String,
-    tag: String,
-}
-
-impl QueryParams {
-    fn verify(self, secret: &HmacSecret) -> Result<String, anyhow::Error> {
-        let tag = hex::decode(self.tag)?;
-
-        let query_string = format!("error={}", urlencoding::Encoded::new(&self.error));
-
-        let mut mac = Hmac::<sha2::Sha256>::new_from_slice(secret.0.expose_secret().as_bytes())?;
-        mac.update(query_string.as_bytes());
-        mac.verify_slice(&tag)?;
-
-        Ok(self.error)
-    }
-}
 pub async fn login_form(flash_messages: IncomingFlashMessages) -> HttpResponse {
     let mut error_html = String::new();
 
