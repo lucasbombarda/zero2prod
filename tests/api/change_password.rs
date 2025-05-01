@@ -85,11 +85,13 @@ async fn new_password_must_have_the_correct_length() {
     let app = spawn_app().await;
     let new_password = "".to_string();
 
-    app.post_login(&serde_json::json!({
-        "username": &app.test_user.username,
-        "password": &app.test_user.password,
-    }))
-    .await;
+    let response = app
+        .post_login(&serde_json::json!({
+            "username": &app.test_user.username,
+            "password": &app.test_user.password,
+        }))
+        .await;
+    assert_is_redirect_to(&response, "/admin/dashboard");
 
     let response = app
         .post_change_password(&serde_json::json!({
@@ -100,11 +102,11 @@ async fn new_password_must_have_the_correct_length() {
         .await;
 
     assert_is_redirect_to(&response, "/admin/password");
+
+    let html_page = app.get_change_password_html().await;
+    assert!(html_page.contains("<p><i>The password must have 12 to 129 characters.</i></p>"));
 
     let new_password = "a".repeat(130);
-    let html_page = app.get_change_password_html().await;
-    assert!(html_page.contains("<p><i>The password must have 12 to 129 characters.</i></p>"));
-
     let response = app
         .post_change_password(&serde_json::json!({
             "current_password": &app.test_user.password,
@@ -117,4 +119,43 @@ async fn new_password_must_have_the_correct_length() {
 
     let html_page = app.get_change_password_html().await;
     assert!(html_page.contains("<p><i>The password must have 12 to 129 characters.</i></p>"));
+}
+
+#[tokio::test]
+async fn changing_password_works() {
+    let app = spawn_app().await;
+    let new_password = Uuid::new_v4().to_string();
+    let login_body = serde_json::json!({
+        "username": &app.test_user.username,
+        "password": &app.test_user.password,
+    });
+
+    let response = app.post_login(&login_body).await;
+    assert_is_redirect_to(&response, "/admin/dashboard");
+
+    let response = app
+        .post_change_password(&serde_json::json!({
+            "current_password": &app.test_user.password,
+            "new_password": &new_password,
+            "new_password_check": &new_password,
+        }))
+        .await;
+    assert_is_redirect_to(&response, "/admin/password");
+
+    let html_page = app.get_change_password_html().await;
+    assert!(html_page.contains("<p><i>Your password has been changed.</i></p>"));
+
+    let response = app.post_logout().await;
+    assert_is_redirect_to(&response, "/login");
+
+    let html_page = app.get_login_html().await;
+    assert!(html_page.contains("<p><i>You have successfully logged out.</i></p>"));
+
+    let login_body = serde_json::json!({
+        "username": &app.test_user.username,
+        "password": &new_password,
+    });
+
+    let response = app.post_login(&login_body).await;
+    assert_is_redirect_to(&response, "/admin/dashboard");
 }
