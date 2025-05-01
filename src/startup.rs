@@ -1,8 +1,10 @@
+use crate::authentication::reject_anonymous_users;
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::{email_client::EmailClient, routes};
 use actix_session::SessionMiddleware;
 use actix_session::storage::RedisSessionStore;
 use actix_web::cookie::Key;
+use actix_web::middleware::from_fn;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer, dev::Server, web};
 use actix_web_flash_messages::FlashMessagesFramework;
@@ -103,13 +105,14 @@ async fn run(
             .route("/", web::get().to(routes::home))
             .route("/login", web::get().to(routes::login_form))
             .route("/login", web::post().to(routes::login))
-            .route("/admin/dashboard", web::get().to(routes::admin_dashboard))
-            .route(
-                "/admin/password",
-                web::get().to(routes::change_password_form),
+            .service(
+                web::scope("/admin")
+                    .wrap(from_fn(reject_anonymous_users))
+                    .route("/dashboard", web::get().to(routes::admin_dashboard))
+                    .route("/password", web::get().to(routes::change_password_form))
+                    .route("/password", web::post().to(routes::change_password))
+                    .route("/logout", web::post().to(routes::logout)),
             )
-            .route("/admin/password", web::post().to(routes::change_password))
-            .route("/admin/logout", web::post().to(routes::logout))
             .app_data(db_pool.clone())
             .app_data(email_client.clone())
             .app_data(base_url.clone())
