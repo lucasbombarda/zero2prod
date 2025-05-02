@@ -73,7 +73,8 @@ impl TestUser {
         app.post_login(&serde_json::json!({
             "username": &self.username,
             "password": &self.password
-        })).await;
+        }))
+        .await;
     }
 }
 
